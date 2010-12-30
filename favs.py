@@ -81,7 +81,7 @@ def GenerateXML ():
     title_id = []
     instant_id = []
     friends_list = api.GetFriends()
-    for friend in friends_list[17:22]:
+    for friend in friends_list[23:24]:
         title_list = api.GetFavorites(friend.screen_name)
         if len(title_list)>5: title_list=title_list[0:4]
         for fav_title in title_list:
@@ -89,14 +89,14 @@ def GenerateXML ():
             if fav_title.id not in id_existed:
                 MakeSubItem(xml_struc,fav_title.text,friend.screen_name)
                 title_id.append(fav_title.id)
-                cache_list.insert(0,(fav_title.text,friend.screen_name))
+                cache_list.insert(0,[fav_title.text,friend.screen_name])
                 cache_list = cache_list[0:9]
 
     title_len = len(title_id)
     if title_len !=0:
         if len(title_id)<10:
             for title in cache_list[title_len:-1]:
-                MakeSubItem(xml_struc,title(0),title(1))
+                MakeSubItem(xml_struc,title[0],title[1])
         with open(path+'/cache_list','wb') as cache_file:
             pickle.dump(cache_list,cache_file)
         with open(path+'/favs.rss','wb') as output:
