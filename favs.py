@@ -33,7 +33,29 @@ def ImplementApi():
 
 def SetTimeZone():
     os.environ['TZ'] = 'Asia/Shanghai'
-    #time.tzset()
+    if sys.platform != 'win32' :
+        time.tzset()
+
+def MakeXMLBody():
+    xml_struc = ElementTree.Element('rss')
+    xml_struc.set('version','2.0')
+    xml_struc.set('xmlns:atom','http://www.w3.org/2005/Atom')
+    xml_struc.set('xmlns:georss','http://www.georss.org/georss')
+
+    channel = ElementTree.SubElement(xml_struc,'channel')
+    ElementTree.SubElement(channel,'title').text = 'favs'
+    ElementTree.SubElement(channel,'link').text = 'https://www.twitter.com'
+    ElementTree.SubElement(channel,'description').text = 'favs of friends'
+    ElementTree.SubElement(channel,'language').text = 'en-us'
+    ElementTree.SubElement(channel,'ttl').text = '40'
+
+    return xml_struc
+
+def MakeSubItem(top,text,name):
+    item = ElementTree.SubElement(top.find('channel'),'item')
+    ElementTree.SubElement(item,'title').text =text + '\t[faved by ' + name + ']'
+    ElementTree.SubElement(item,'description').text = text
+    ElementTree.SubElement(item,'link').text = 'none'
 
 
 def GenerateXML ():
@@ -44,19 +66,7 @@ def GenerateXML ():
     if api.VerifyCredentials() == None:
         return
 
-    xml_struc = ElementTree.Element('rss')
-    xml_struc.set('version','2.0')
-    xml_struc.set('xmlns:atom','http://www.w3.org/2005/Atom')
-    xml_struc.set('xmlns:georss','http://www.georss.org/georss')
-
-
-    channel = ElementTree.SubElement(xml_struc,'channel')
-    ElementTree.SubElement(channel,'title').text = 'favs'
-    ElementTree.SubElement(channel,'link').text = 'https://www.twitter.com'
-    ElementTree.SubElement(channel,'description').text = 'favs of friends'
-    ElementTree.SubElement(channel,'language').text = 'en-us'
-    ElementTree.SubElement(channel,'ttl').text = '40'
-
+    xml_struc = MakeXMLBody()
 
     try:
         with open(path+'/title_id','rb') as title_store:
@@ -66,17 +76,13 @@ def GenerateXML ():
     title_id = []
     instant_id = []
     friends_list = api.GetFriends()
-    for friend in friends_list[0:5]:
+    for friend in friends_list[17:22]:
         title_list = api.GetFavorites(friend.screen_name)
         if len(title_list)>5: title_list=title_list[0:4]
         for fav_title in title_list:
             instant_id.append(fav_title.id)
             if fav_title.id not in id_existed:
-                item = ElementTree.SubElement(channel,'item')
-                ElementTree.SubElement(item,'title').text =fav_title.text + \
-                '  [faved by ' + friend.screen_name + ']'
-                ElementTree.SubElement(item,'description').text = fav_title.text
-                ElementTree.SubElement(item,'link').text = 'none'
+                MakeSubItem(xml_struc,fav_title.text,friend.screen_name)
                 title_id.append(fav_title.id)
 
     if title_id !=[]:
