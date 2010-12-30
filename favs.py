@@ -73,6 +73,11 @@ def GenerateXML ():
             id_existed = pickle.load(title_store)
     except IOError:
         id_existed = []
+    try:
+        with open(path+'/cache_list','rb') as cache_file:
+            cache_list = pickle.load(cache_file)
+    except IOError:
+        cache_list = []
     title_id = []
     instant_id = []
     friends_list = api.GetFriends()
@@ -84,14 +89,22 @@ def GenerateXML ():
             if fav_title.id not in id_existed:
                 MakeSubItem(xml_struc,fav_title.text,friend.screen_name)
                 title_id.append(fav_title.id)
+                cache_list.insert(0,(fav_title.text,friend.screen_name))
+                cache_list = cache_list[0:9]
 
-    if title_id !=[]:
+    title_len = len(title_id)
+    if title_len !=0:
+        if len(title_id)<10:
+            for title in cache_list[title_len:-1]:
+                MakeSubItem(xml_struc,title(0),title(1))
+        with open(path+'/cache_list','wb') as cache_file:
+            pickle.dump(cache_list,cache_file)
         with open(path+'/favs.rss','wb') as output:
             output.write(FormatString(xml_struc).encode('utf-8'))
         with open(path+'/title_id','wb') as existed_id_file:
             pickle.dump(instant_id,existed_id_file)
     with open (path+'/log','ab') as log_file:
-        str_log = time.strftime("%b %d %H:%M  ")+str(len(title_id))+ \
+        str_log = time.strftime("%b %d %H:%M  ")+str(title_len)+ \
         " items updated."+'\n'
         log_file.write(str_log)
 
