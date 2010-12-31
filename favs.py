@@ -95,7 +95,7 @@ def GenerateXML ():
     title_len = len(title_id)
     if title_len !=0:
         if len(title_id)<20:
-            for title in cache_list[title_len:-1]:
+            for title in cache_list[title_len:]:
                 MakeSubItem(xml_struc,title[0],title[1])
         with open(path+'/cache_list','wb') as cache_file:
             pickle.dump(cache_list,cache_file)
@@ -103,10 +103,14 @@ def GenerateXML ():
             output.write(FormatString(xml_struc).encode('utf-8'))
         with open(path+'/title_id','wb') as existed_id_file:
             pickle.dump(instant_id,existed_id_file)
-    with open (path+'/log','ab') as log_file:
-        str_log = time.strftime("%b %d %H:%M  ")+str(title_len)+ \
-        " items updated."+'\n'
-        log_file.write(str_log)
+    with open (path+'/log','rb') as log_file:
+        logs=log_file.readlines()
+    if len(logs)>10 : logs = logs[-9:]
+    str_log = time.strftime("%b %d %H:%M  ")+str(title_len)+ \
+    " items updated."+'\n'
+    logs.append(str_log)
+    with open (path+'/log','wb') as log_file:
+        log_file.writelines(logs)
 
 
 def main():
