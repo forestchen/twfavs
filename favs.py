@@ -81,7 +81,7 @@ def GenerateXML ():
     title_id = []
     instant_id = []
     friends_list = api.GetFriends()
-    for friend in friends_list[23:24]:
+    for friend in friends_list:
         title_list = api.GetFavorites(friend.screen_name)
         if len(title_list)>5: title_list=title_list[0:4]
         for fav_title in title_list:
@@ -90,11 +90,11 @@ def GenerateXML ():
                 MakeSubItem(xml_struc,fav_title.text,friend.screen_name)
                 title_id.append(fav_title.id)
                 cache_list.insert(0,[fav_title.text,friend.screen_name])
-                cache_list = cache_list[0:9]
+                if len(cache_list) > 20: cache_list = cache_list[0:19]
 
     title_len = len(title_id)
     if title_len !=0:
-        if len(title_id)<10:
+        if len(title_id)<20:
             for title in cache_list[title_len:-1]:
                 MakeSubItem(xml_struc,title[0],title[1])
         with open(path+'/cache_list','wb') as cache_file:
