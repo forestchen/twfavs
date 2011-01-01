@@ -51,11 +51,14 @@ def MakeXMLBody():
 
     return xml_struc
 
-def MakeSubItem(top,text,name):
+def MakeSubItem(top,text,name,link):
     item = ElementTree.SubElement(top.find('channel'),'item')
     ElementTree.SubElement(item,'title').text =text + '\t[faved by ' + name + ']'
     ElementTree.SubElement(item,'description').text = text
-    ElementTree.SubElement(item,'link').text = 'none'
+    ElementTree.SubElement(item,'link').text = link
+    
+def MakeStatusLink(status):
+    return 'https://twitter.com/'+status.user.screen_name+'/status/'+str(status.id)
 
 
 def GenerateXML ():
@@ -87,16 +90,17 @@ def GenerateXML ():
         for fav_title in title_list:
             instant_id.append(fav_title.id)
             if fav_title.id not in id_existed:
-                MakeSubItem(xml_struc,fav_title.text,friend.screen_name)
+                link = MakeStatusLink(fav_title)
+                MakeSubItem(xml_struc,fav_title.text,friend.screen_name,link)
                 title_id.append(fav_title.id)
-                cache_list.insert(0,[fav_title.text,friend.screen_name])
+                cache_list.insert(0,[fav_title.text,friend.screen_name,link])
                 if len(cache_list) > 20: cache_list = cache_list[0:19]
 
     title_len = len(title_id)
     if title_len !=0:
         if len(title_id)<20:
             for title in cache_list[title_len:]:
-                MakeSubItem(xml_struc,title[0],title[1])
+                MakeSubItem(xml_struc,title[0],title[1],title[2])
         with open(path+'/cache_list','wb') as cache_file:
             pickle.dump(cache_list,cache_file)
         with open(path+'/favs.rss','wb') as output:
