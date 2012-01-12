@@ -53,7 +53,7 @@ def MakeXMLBody():
 
 def MakeSubItem(top,text,name,link):
     item = ElementTree.SubElement(top.find('channel'),'item')
-    ElementTree.SubElement(item,'title').text =text + '\t[faved by ' + name + ']'
+    ElementTree.SubElement(item,'title').text ='[faved by ' + name + ']\t' + text
     ElementTree.SubElement(item,'description').text = text
     ElementTree.SubElement(item,'link').text = link
     
