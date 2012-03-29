@@ -9,6 +9,7 @@ import string
 from xml.etree import ElementTree
 from xml.dom import minidom
 
+import longurl
 
 def FormatString (raw_struc):
     raw_string = ElementTree.tostring(raw_struc)
@@ -54,8 +55,10 @@ def MakeXMLBody():
 def MakeSubItem(top,text,name,link):
     item = ElementTree.SubElement(top.find('channel'),'item')
     ElementTree.SubElement(item,'title').text ='[faved by ' + name + ']\t' + text
-    ElementTree.SubElement(item,'description').text = text
+    ElementTree.SubElement(item,'description').text = longurl.MakeText(text)
+    ElementTree.SubElement(item,'guid').text = link
     ElementTree.SubElement(item,'link').text = link
+
     
 def MakeStatusLink(status):
     return 'https://twitter.com/'+status.user.screen_name+'/status/'+str(status.id)
@@ -83,7 +86,7 @@ def GenerateXML ():
         cache_list = []
     title_id = []
     instant_id = []
-    friends_list = api.GetFriends()
+    friends_list = api.GetFriends()[:]
     for friend in friends_list:
         title_list = api.GetFavorites(friend.screen_name)
         if len(title_list)>5: title_list=title_list[0:4]
