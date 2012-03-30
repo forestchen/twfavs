@@ -18,7 +18,7 @@ def MakeText(text):
 
     for link in links:
         # print link, long_links
-        text = text.replace(link, long_links[link])
+        text = text.replace(link, MakeHTMLLink(long_links[link]))
 
     return text
 
@@ -33,7 +33,6 @@ def ExpandLinks(links):
         com = urlparse.urlparse(link)
         if com.netloc in url_loc:
             c = httplib.HTTPConnection(com.netloc)
-            print com.path
             c.request("GET", com.path)
             r = c.getresponse()
             long_link = r.getheader('Location')
@@ -44,5 +43,10 @@ def ExpandLinks(links):
 
     return link_dict
 
+def MakeHTMLLink(link):
+
+    link_text = urlparse.urlparse(link).hostname.replace('www.','')
+
+    return '<a href="%s">[%s]</a>' % (link, link_text)
 
 # print MakeText(text)

@@ -14,7 +14,7 @@ from longurl import MakeText
 def FormatString (raw_struc):
     raw_string = ElementTree.tostring(raw_struc)
     reparsed = minidom.parseString(raw_string)
-    return reparsed.toprettyxml(indent=' ')
+    return reparsed.toprettyxml(indent='  ')
 
 def ImplementApi():
 
@@ -41,8 +41,13 @@ def MakeXMLBody():
     xml_struc = ElementTree.Element('rss')
     xml_struc.set('version','2.0')
     xml_struc.set('xmlns:atom','http://www.w3.org/2005/Atom')
-    xml_struc.set('xmlns:georss','http://www.georss.org/georss')
-
+    xml_struc.set('xmlns:georss','http://www.georss.org/+georss')
+    xml_struc.set('xmlns:content','http://purl.org/rss/1.0/modules/content/')
+    xml_struc.set('xmlns:wfw','http://wellformedweb.org/CommentAPI/')
+    xml_struc.set('xmlns:dc','http://purl.org/dc/elements/1.1/')
+    xml_struc.set('xmlns:sy','http://purl.org/rss/1.0/modules/syndication/')
+    xml_struc.set('xmlns:slash','http://purl.org/rss/1.0/modules/slash/')
+    
     channel = ElementTree.SubElement(xml_struc,'channel')
     ElementTree.SubElement(channel,'title').text = 'favs'
     ElementTree.SubElement(channel,'atom:link', href="http://rythdev.com/social/favs.rss", \
@@ -63,18 +68,16 @@ def MakeSubItem(top,text,name,link):
 
 def MakeDailyItem(tree, text):
     item = ElementTree.SubElement(tree.find('channel'),'item')
-    ElementTree.SubElement(item,'title').text ='%s daily tweets' % time.asctime()
+    ElementTree.SubElement(item,'title').text ='%s daily tweets' % time.strftime('%b %d')
     ElementTree.SubElement(item,'description').text = text
-    ElementTree.SubElement(item,'guid').text = 'rythdev/favs/' + str(time.time())
+    ElementTree.SubElement(item,'guid').text = 'http://rythdev.com/favs/' + str(time.time())
     ElementTree.SubElement(item,'link').text = 'http://www.twitter.com'
 
 
 def MakeItemList(items_list):
     text = ''
     for item in items_list:
-        # text = text + '[faved by %s]' % item['name'] + item['text']+ \
-        text = text + '[faved by %s]' % item['name'] + MakeText(item['text'])+ \
-                '\n' + item['link'] + '\n' + '\n' 
+        text =  text + '<p>[faved by %s] %s</p>\n' % (item['name'], MakeText(item['text']))
 
     return text
 
@@ -105,7 +108,7 @@ def GenerateXML ():
         cache_list = []
     title_id = []
     instant_id = []
-    friends_list = api.GetFriends()[:]
+    friends_list = api.GetFriends()[45:50]
     text_list = []
     for friend in friends_list:
         title_list = api.GetFavorites(friend.screen_name)
