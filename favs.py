@@ -9,7 +9,7 @@ import string
 from xml.etree import ElementTree
 from xml.dom import minidom
 
-import longurl
+from longurl import MakeText
 
 def FormatString (raw_struc):
     raw_string = ElementTree.tostring(raw_struc)
@@ -45,6 +45,8 @@ def MakeXMLBody():
 
     channel = ElementTree.SubElement(xml_struc,'channel')
     ElementTree.SubElement(channel,'title').text = 'favs'
+    ElementTree.SubElement(channel,'atom:link', href="http://rythdev.com/social/favs.rss", \
+            rel="self", type="application/rss+xml")
     ElementTree.SubElement(channel,'link').text = 'https://www.twitter.com'
     ElementTree.SubElement(channel,'description').text = 'favs of friends'
     ElementTree.SubElement(channel,'language').text = 'en-us'
@@ -58,6 +60,23 @@ def MakeSubItem(top,text,name,link):
     ElementTree.SubElement(item,'description').text = longurl.MakeText(text)
     ElementTree.SubElement(item,'guid').text = link
     ElementTree.SubElement(item,'link').text = link
+
+def MakeDailyItem(tree, text):
+    item = ElementTree.SubElement(tree.find('channel'),'item')
+    ElementTree.SubElement(item,'title').text ='%s daily tweets' % time.asctime()
+    ElementTree.SubElement(item,'description').text = text
+    ElementTree.SubElement(item,'guid').text = 'rythdev/favs/' + str(time.time())
+    ElementTree.SubElement(item,'link').text = 'http://www.twitter.com'
+
+
+def MakeItemList(items_list):
+    text = ''
+    for item in items_list:
+        # text = text + '[faved by %s]' % item['name'] + item['text']+ \
+        text = text + '[faved by %s]' % item['name'] + MakeText(item['text'])+ \
+                '\n' + item['link'] + '\n' + '\n' 
+
+    return text
 
     
 def MakeStatusLink(status):
@@ -87,6 +106,7 @@ def GenerateXML ():
     title_id = []
     instant_id = []
     friends_list = api.GetFriends()[:]
+    text_list = []
     for friend in friends_list:
         title_list = api.GetFavorites(friend.screen_name)
         if len(title_list)>5: title_list=title_list[0:4]
@@ -94,16 +114,21 @@ def GenerateXML ():
             instant_id.append(fav_title.id)
             if fav_title.id not in id_existed:
                 link = MakeStatusLink(fav_title)
-                MakeSubItem(xml_struc,fav_title.text,friend.screen_name,link)
+                # MakeSubItem(xml_struc,fav_title.text,friend.screen_name,link)
+                text_list.append({'text':fav_title.text, 'name':friend.screen_name,
+                        'link':link})
                 title_id.append(fav_title.id)
                 cache_list.insert(0,[fav_title.text,friend.screen_name,link])
                 if len(cache_list) > 20: cache_list = cache_list[0:19]
+    if text_list != []:
+        daily_text = MakeItemList(text_list)
+        MakeDailyItem(xml_struc, daily_text)
 
     title_len = len(title_id)
     if title_len !=0:
-        if len(title_id)<20:
-            for title in cache_list[title_len:]:
-                MakeSubItem(xml_struc,title[0],title[1],title[2])
+        # if len(title_id)<20:
+            # for title in cache_list[title_len:]:
+                # MakeSubItem(xml_struc,title[0],title[1],title[2])
         with open(path+'/cache_list','wb') as cache_file:
             pickle.dump(cache_list,cache_file)
         with open(path+'/favs.rss','wb') as output:
