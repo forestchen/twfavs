@@ -26,9 +26,9 @@ class XMLString():
     <item>\n\
     <title>%s</title>\n\
     <description>\n\
-    <table>\n\
+    &lt;table&gt;\n\
     %s\n\
-    </table>\n\
+    &lt;/table&gt;\n\
     </description>\n\
     <guid>%s</guid>\n\
     <link>%s</link>\n\
@@ -40,26 +40,31 @@ def MakeHTMLLink(link):
 
     link_text = urlparse(link).hostname.replace('www.','')
 
-    return '<a style="text-decoration: none" href="%s">[%s]</a>' % (link, link_text)
+    html = '<a style="text-decoration: none" href="%s">[%s]</a>' % (link, link_text)
 
+    return ConvertChar(html)
 
 def MakeImage(pic_link, alt_text=''):
 
-    return '<img src="%s" alt="%s"/>' % (pic_link, alt_text)
+    return ConvertChar('<img src="%s" alt="%s"/>' % (pic_link, alt_text))
 
 def MakeHTMLItem(pic, text):
     html = '\
     <tr>\n\
     <td><img src="%s" width="48" height="48" /></td>\n\
-    <td style="border-top: thin solid grey;">%s</td>\n\
+    <td style="border-top:1px; border-top-style:solid; border-top-color:#C0C0C0;">%s</td>\n\
     </tr>\n' % (pic, text)
 
-    return html
+    return ConvertChar(html)
 
 def MakeStyle():
 
     return '\
     .ext_link { text-decoration: none;}\n'
+
+def ConvertChar(text):
+
+    return text.replace('<', '&lt;').replace('>', '&gt;')
 
         
 
