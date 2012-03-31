@@ -10,6 +10,7 @@ from xml.etree import ElementTree
 from xml.dom import minidom
 
 from longurl import MakeText
+from htmlstring import MakeImage, MakeStyle, XMLString, MakeHTMLItem
 
 def FormatString (raw_struc):
     raw_string = ElementTree.tostring(raw_struc)
@@ -37,47 +38,20 @@ def SetTimeZone():
     if sys.platform != 'win32' :
         time.tzset()
 
-def MakeXMLBody():
-    xml_struc = ElementTree.Element('rss')
-    xml_struc.set('version','2.0')
-    xml_struc.set('xmlns:atom','http://www.w3.org/2005/Atom')
-    xml_struc.set('xmlns:georss','http://www.georss.org/+georss')
-    xml_struc.set('xmlns:content','http://purl.org/rss/1.0/modules/content/')
-    xml_struc.set('xmlns:wfw','http://wellformedweb.org/CommentAPI/')
-    xml_struc.set('xmlns:dc','http://purl.org/dc/elements/1.1/')
-    xml_struc.set('xmlns:sy','http://purl.org/rss/1.0/modules/syndication/')
-    xml_struc.set('xmlns:slash','http://purl.org/rss/1.0/modules/slash/')
+
+def MakeDailyTweets(text):
+
+    text = XMLString.XML_node('%s daily tweets' % time.strftime('%b %d'), text, \
+                              'http://rythdev.com/favs/' + str(time.time()), \
+                              'http://www.twitter.com')
     
-    channel = ElementTree.SubElement(xml_struc,'channel')
-    ElementTree.SubElement(channel,'title').text = 'favs'
-    ElementTree.SubElement(channel,'atom:link', href="http://rythdev.com/social/favs.rss", \
-            rel="self", type="application/rss+xml")
-    ElementTree.SubElement(channel,'link').text = 'https://www.twitter.com'
-    ElementTree.SubElement(channel,'description').text = 'favs of friends'
-    ElementTree.SubElement(channel,'language').text = 'en-us'
-    ElementTree.SubElement(channel,'ttl').text = '40'
-
-    return xml_struc
-
-def MakeSubItem(top,text,name,link):
-    item = ElementTree.SubElement(top.find('channel'),'item')
-    ElementTree.SubElement(item,'title').text ='[faved by ' + name + ']\t' + text
-    ElementTree.SubElement(item,'description').text = longurl.MakeText(text)
-    ElementTree.SubElement(item,'guid').text = link
-    ElementTree.SubElement(item,'link').text = link
-
-def MakeDailyItem(tree, text):
-    item = ElementTree.SubElement(tree.find('channel'),'item')
-    ElementTree.SubElement(item,'title').text ='%s daily tweets' % time.strftime('%b %d')
-    ElementTree.SubElement(item,'description').text = text
-    ElementTree.SubElement(item,'guid').text = 'http://rythdev.com/favs/' + str(time.time())
-    ElementTree.SubElement(item,'link').text = 'http://www.twitter.com'
+    return text
 
 
 def MakeItemList(items_list):
     text = ''
     for item in items_list:
-        text =  text + '<p>[faved by %s] %s</p>\n' % (item['name'], MakeText(item['text']))
+        text =  text + MakeHTMLItem(item['avatar'], MakeText(item['text']))
 
     return text
 
@@ -94,21 +68,23 @@ def GenerateXML ():
     if api.VerifyCredentials() == None:
         return
 
-    xml_struc = MakeXMLBody()
+    # xml_struc = MakeXMLBody()
+    xml_doc = XMLString()
+    tree = xml_doc.head
 
     try:
-        with open(path+'/title_id','rb') as title_store:
+        with open(path+'/title_id','r') as title_store:
             id_existed = pickle.load(title_store)
     except IOError:
         id_existed = []
     try:
-        with open(path+'/cache_list','rb') as cache_file:
+        with open(path+'/cache_list','r') as cache_file:
             cache_list = pickle.load(cache_file)
     except IOError:
         cache_list = []
     title_id = []
     instant_id = []
-    friends_list = api.GetFriends()[45:50]
+    friends_list = api.GetFriends()[:]
     text_list = []
     for friend in friends_list:
         title_list = api.GetFavorites(friend.screen_name)
@@ -117,25 +93,28 @@ def GenerateXML ():
             instant_id.append(fav_title.id)
             if fav_title.id not in id_existed:
                 link = MakeStatusLink(fav_title)
-                # MakeSubItem(xml_struc,fav_title.text,friend.screen_name,link)
                 text_list.append({'text':fav_title.text, 'name':friend.screen_name,
-                        'link':link})
+                        'link':link, 'avatar':fav_title.user.profile_image_url})
                 title_id.append(fav_title.id)
                 cache_list.insert(0,[fav_title.text,friend.screen_name,link])
                 if len(cache_list) > 20: cache_list = cache_list[0:19]
     if text_list != []:
         daily_text = MakeItemList(text_list)
-        MakeDailyItem(xml_struc, daily_text)
+        tree = tree + xml_doc.XML_node('%s daily tweets' % time.strftime('%b %d'), \
+            daily_text, 'http://rythdev.com/favs/' + str(time.time()), 'http://www.twitter.com')
+                                      
+
+    tree = tree + xml_doc.bottom
 
     title_len = len(title_id)
     if title_len !=0:
         # if len(title_id)<20:
             # for title in cache_list[title_len:]:
                 # MakeSubItem(xml_struc,title[0],title[1],title[2])
+        with open(path+'/favs.rss','w') as output:
+            output.write(tree.encode('utf-8'))
         with open(path+'/cache_list','wb') as cache_file:
             pickle.dump(cache_list,cache_file)
-        with open(path+'/favs.rss','wb') as output:
-            output.write(FormatString(xml_struc).encode('utf-8'))
         with open(path+'/title_id','wb') as existed_id_file:
             pickle.dump(instant_id,existed_id_file)
     with open (path+'/log','rb') as log_file:

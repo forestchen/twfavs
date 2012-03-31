@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import re, httplib, urlparse
+from htmlstring import MakeHTMLLink
 
 # text='there is two links http://t.cn/zOtKv90 , http://t.cn/zOt4xFM in this text'
 
@@ -42,11 +43,5 @@ def ExpandLinks(links):
         link_dict[link] = long_link if long_link != None else link
 
     return link_dict
-
-def MakeHTMLLink(link):
-
-    link_text = urlparse.urlparse(link).hostname.replace('www.','')
-
-    return '<a href="%s">[%s]</a>' % (link, link_text)
 
 # print MakeText(text)
