@@ -64,7 +64,8 @@ def MakeStyle():
 
 def ConvertChar(text):
 
-    return text.replace('<', '&lt;').replace('>', '&gt;')
+    return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
 
         
 
