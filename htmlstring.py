@@ -48,12 +48,14 @@ def MakeImage(pic_link, alt_text=''):
 
     return ConvertChar('<img src="%s" alt="%s"/>' % (pic_link, alt_text))
 
-def MakeHTMLItem(pic, text):
+def MakeHTMLItem(pic, text, friend, user):
     html = '\
     <tr>\n\
-    <td><img src="%s" width="48" height="48" /></td>\n\
-    <td style="border-top:1px; border-top-style:solid; border-top-color:#C0C0C0;">%s</td>\n\
-    </tr>\n' % (pic, text)
+    <td valign=top><img src="%s" width="48" height="48" /></td>\n\
+    <td style="border-bottom:1px; border-bottom-style:solid; border-bottom-color:#C0C0C0;">\n\
+    <b>%s</b><br />%s<br />\n\
+    <font size="2" color="grey">faved by %s</font></td>\n\
+    </tr>\n' % (pic, user, text, friend)
 
     return ConvertChar(html)
 
@@ -64,7 +66,7 @@ def MakeStyle():
 
 def ConvertChar(text):
 
-    return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    return text.replace('<', '&lt;').replace('>', '&gt;')
 
 
         

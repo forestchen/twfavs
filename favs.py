@@ -51,7 +51,8 @@ def MakeDailyTweets(text):
 def MakeItemList(items_list):
     text = ''
     for item in items_list:
-        text =  text + MakeHTMLItem(item['avatar'], MakeText(item['text']))
+        text =  text + MakeHTMLItem(item['avatar'], MakeText(item['text']),
+                item['friend'], item['user'])
 
     return text
 
@@ -93,8 +94,9 @@ def GenerateXML ():
             instant_id.append(fav_title.id)
             if fav_title.id not in id_existed:
                 link = MakeStatusLink(fav_title)
-                text_list.append({'text':fav_title.text, 'name':friend.screen_name,
-                        'link':link, 'avatar':fav_title.user.profile_image_url})
+                text_list.append({'text':fav_title.text, 'friend':friend.screen_name,
+                        'link':link, 'avatar':fav_title.user.profile_image_url,
+                        'user':fav_title.user.screen_name})
                 title_id.append(fav_title.id)
                 cache_list.insert(0,[fav_title.text,friend.screen_name,link])
                 if len(cache_list) > 20: cache_list = cache_list[0:19]

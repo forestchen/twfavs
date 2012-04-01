@@ -9,6 +9,8 @@ url_loc = ['t.co','tr.im','is.gd','tinyurl.com','bit.ly',]
 
 def MakeText(text):
 
+    text = text.replace('&', '&amp;')
+
     links = CheckLinks(text)
     if links == []:
         # print 'no link found'
