@@ -6,16 +6,16 @@ import os
 import sys
 import time
 import string
-from xml.etree import ElementTree
-from xml.dom import minidom
+from email.utils import formatdate
 
 from longurl import MakeText
 from htmlstring import MakeImage, MakeStyle, XMLString, MakeHTMLItem
 
-def FormatString (raw_struc):
-    raw_string = ElementTree.tostring(raw_struc)
-    reparsed = minidom.parseString(raw_string)
-    return reparsed.toprettyxml(indent='  ')
+
+title = 'daily favorite tweets of friends'
+atom = 'http://rythdev.com/social/favs.rss'
+site_link = 'http://rythdev.com/social/favs.rss'
+description = 'daily favorite tweets of friends'
 
 def ImplementApi():
 
@@ -61,7 +61,7 @@ def MakeStatusLink(status):
     return 'https://twitter.com/'+status.user.screen_name+'/status/'+str(status.id)
 
 
-def GenerateXML ():
+def GenerateXML():
 
     path = os.path.dirname(sys.argv[0])
 
@@ -69,8 +69,7 @@ def GenerateXML ():
     if api.VerifyCredentials() == None:
         return
 
-    # xml_struc = MakeXMLBody()
-    xml_doc = XMLString()
+    xml_doc = XMLString(title, atom, site_link, description, formatdate())
     tree = xml_doc.head
 
     try:
@@ -78,11 +77,6 @@ def GenerateXML ():
             id_existed = pickle.load(title_store)
     except IOError:
         id_existed = []
-    try:
-        with open(path+'/cache_list','r') as cache_file:
-            cache_list = pickle.load(cache_file)
-    except IOError:
-        cache_list = []
     try:
         with open(path+'/old_list','r') as old_file:
             old_list = pickle.load(old_file)
@@ -104,12 +98,10 @@ def GenerateXML ():
                         'link':link, 'avatar':fav_title.user.profile_image_url,
                         'user':fav_title.user.screen_name})
                 title_id.append(fav_title.id)
-                cache_list.insert(0,[fav_title.text,friend.screen_name,link])
-                if len(cache_list) > 20: cache_list = cache_list[0:19]
     if text_list != []:
         daily_text = MakeItemList(text_list)
         daily_item = xml_doc.XML_node('%s daily tweets' % time.strftime('%b %d'), \
-            daily_text, 'http://rythdev.com/favs/' + str(time.time()), 'http://www.twitter.com')
+            daily_text, formatdate(), 'http://rythdev.com/favs/' + str(time.time()), 'http://www.twitter.com')
         tree = tree + daily_item
         if len(old_list) > 2: old_list = old_list[0:2]
         for item in old_list:
@@ -125,12 +117,10 @@ def GenerateXML ():
         with open(path+'/old_list','w') as old_file:
             pickle.dump(old_list,old_file)
 
-        with open(path+'/cache_list','wb') as cache_file:
-            pickle.dump(cache_list,cache_file)
-        with open(path+'/title_id','wb') as existed_id_file:
+        with open(path+'/title_id','w') as existed_id_file:
             pickle.dump(instant_id,existed_id_file)
 
-    with open (path+'/log','rb') as log_file:
+    with open (path+'/log','r') as log_file:
         logs=log_file.readlines()
     if len(logs)>10 : logs = logs[-9:]
     str_log = time.strftime("%b %d %H:%M  ")+str(title_len)+ \

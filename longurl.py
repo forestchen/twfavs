@@ -9,21 +9,16 @@ url_loc = ['t.co','tr.im','is.gd','tinyurl.com','bit.ly',]
 
 def MakeText(text):
 
-    text = text.replace('&', '&amp;')
-
     links = CheckLinks(text)
-    if links == []:
-        # print 'no link found'
-        return text
-    else:
+    if links != []:
         long_links = ExpandLinks(links)
         # print long_links
 
-    for link in links:
-        # print link, long_links
-        text = text.replace(link, MakeHTMLLink(long_links[link]))
+        for link in links:
+            # print link, long_links
+            text = text.replace(link, MakeHTMLLink(long_links[link]))
 
-    return text
+    return text.replace('&', '&amp;')
 
 def CheckLinks(text):
 

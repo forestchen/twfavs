@@ -4,24 +4,26 @@ from urlparse import urlparse
 
 class XMLString():
 
-    def __init__(self):
+    def __init__(self, title, atom, link, description, pubDate):
         self.head='\
-<?xml version="1.0" encoding="UTF-8"?>\n\
+<?xml version="1.0" encoding="utf-8"?>\n\
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n\
   <channel>\n\
-    <title>favs</title>\n\
-    <atom:link href="http://rythdev.com/social/favs.rss" rel="self" type="application/rss+xml"/>\n\
-    <link>https://www.twitter.com</link>\n\
+    <title>%s</title>\n\
+    <atom:link href="%s" rel="self" type="application/rss+xml"/>\n\
+    <link>%s</link>\n\
     <description>\n\
-     favs of friends\n\
+     %s\n\
     </description>\n\
     <language>en-us</language>\n\
-    <ttl>40</ttl>\n'
+    <pubDate>%s</pubDate>\n\
+    <lastBuildDate>%s</lastBuildDate>\n\
+    <ttl>40</ttl>\n' % (title, atom, link, description, pubDate, pubDate)
         self.bottom = '\
   </channel>\n\
 </rss>\n'
 
-    def XML_node(self, title, description, guid, link):
+    def XML_node(self, title, description, date, guid, link):
         node = '\
     <item>\n\
     <title>%s</title>\n\
@@ -30,9 +32,10 @@ class XMLString():
     %s\n\
     &lt;/table&gt;\n\
     </description>\n\
+    <pubDate>%s</pubDate>\n\
     <guid>%s</guid>\n\
     <link>%s</link>\n\
-    </item>\n' % (title, description, guid, link)
+    </item>\n' % (title, description, date, guid, link)
 
         return node
 
@@ -42,11 +45,11 @@ def MakeHTMLLink(link):
 
     html = '<a style="text-decoration: none" href="%s">[%s]</a>' % (link, link_text)
 
-    return ConvertChar(html)
+    return html
 
 def MakeImage(pic_link, alt_text=''):
 
-    return ConvertChar('<img src="%s" alt="%s"/>' % (pic_link, alt_text))
+    return '<img src="%s" alt="%s"/>' % (pic_link, alt_text)
 
 def MakeHTMLItem(pic, text, friend, user, bg_color=['#ffffff', '#eeeeee']):
 
