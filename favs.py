@@ -83,6 +83,12 @@ def GenerateXML ():
             cache_list = pickle.load(cache_file)
     except IOError:
         cache_list = []
+    try:
+        with open(path+'/old_list','r') as old_file:
+            old_list = pickle.load(old_file)
+    except IOError:
+        old_list = []
+
     title_id = []
     instant_id = []
     friends_list = api.GetFriends()[:]
@@ -102,23 +108,28 @@ def GenerateXML ():
                 if len(cache_list) > 20: cache_list = cache_list[0:19]
     if text_list != []:
         daily_text = MakeItemList(text_list)
-        tree = tree + xml_doc.XML_node('%s daily tweets' % time.strftime('%b %d'), \
+        daily_item = xml_doc.XML_node('%s daily tweets' % time.strftime('%b %d'), \
             daily_text, 'http://rythdev.com/favs/' + str(time.time()), 'http://www.twitter.com')
-                                      
+        tree = tree + daily_item
+        if len(old_list) > 2: old_list = old_list[0:2]
+        for item in old_list:
+            tree = tree + item
+        old_list.insert(0, daily_item)
 
     tree = tree + xml_doc.bottom
 
     title_len = len(title_id)
     if title_len !=0:
-        # if len(title_id)<20:
-            # for title in cache_list[title_len:]:
-                # MakeSubItem(xml_struc,title[0],title[1],title[2])
         with open(path+'/favs.rss','w') as output:
             output.write(tree.encode('utf-8'))
+        with open(path+'/old_list','w') as old_file:
+            pickle.dump(old_list,old_file)
+
         with open(path+'/cache_list','wb') as cache_file:
             pickle.dump(cache_list,cache_file)
         with open(path+'/title_id','wb') as existed_id_file:
             pickle.dump(instant_id,existed_id_file)
+
     with open (path+'/log','rb') as log_file:
         logs=log_file.readlines()
     if len(logs)>10 : logs = logs[-9:]

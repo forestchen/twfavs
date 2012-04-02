@@ -26,7 +26,7 @@ class XMLString():
     <item>\n\
     <title>%s</title>\n\
     <description>\n\
-    &lt;table&gt;\n\
+    &lt;table CELLPADDING="5" CELLSPACING="0" &gt;\n\
     %s\n\
     &lt;/table&gt;\n\
     </description>\n\
@@ -48,14 +48,17 @@ def MakeImage(pic_link, alt_text=''):
 
     return ConvertChar('<img src="%s" alt="%s"/>' % (pic_link, alt_text))
 
-def MakeHTMLItem(pic, text, friend, user):
+def MakeHTMLItem(pic, text, friend, user, bg_color=['#ffffff', '#eeeeee']):
+
+    bg_color.append(bg_color.pop(0))
+
     html = '\
-    <tr>\n\
+    <tr bgcolor="%s";>\n\
     <td valign=top><img src="%s" width="48" height="48" /></td>\n\
-    <td style="border-bottom:1px; border-bottom-style:solid; border-bottom-color:#C0C0C0;">\n\
+    <td>\n\
     <b>%s</b><br />%s<br />\n\
     <font size="2" color="grey">faved by %s</font></td>\n\
-    </tr>\n' % (pic, user, text, friend)
+    </tr>\n' % (bg_color[0], pic, user, text, friend)
 
     return ConvertChar(html)
 
